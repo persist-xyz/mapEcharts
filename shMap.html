@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html style="height: 100%">
+
+<head>
+    <title>sh</title>
+    <meta charset="utf-8">
+    <style>
+    #start {
+        position: fixed;
+        bottom: 85%;
+        left: 6%;
+        border-radius: 20px;
+        color: #0a7cf8;
+        text-align: center;
+        background: none;
+        font-size: 60px;
+        cursor: pointer;
+        outline: none;
+        box-sizing: border-box;
+    }
+    
+    .button:hover {
+        background: #a7faff;
+        color: #000;
+    }
+    
+    #shanghai {
+        right: 340px;
+    }
+    
+    #beijing {
+        right: 220px;
+    }
+    
+    #shenzhen {
+        right: 100px;
+    }
+    .anchorBL{display: none;}
+    #start{display: none;}
+    </style>
+</head>
+
+<body style="height: 100%; margin: 0">
+    <div id="container" style="height: 100%"></div>
+    <div id="start">用支付点亮上海 00:00</div>
+    <script type="text/javascript" src="https://cdn.bootcss.com/echarts/3.5.3/echarts.min.js"></script>
+    <script type="text/javascript" src="js/dataTool.min.js"></script>
+    <script type="text/javascript" src="js/china.js"></script>
+    <script type="text/javascript" src="js/world.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=7ZxBdiEy31AKf8KWRtzGNH9CptMmxkd7"></script>
+    <script type="text/javascript" src="js/bmap.min.js"></script>
+    <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+    <script type="text/javascript" src="sh.js"></script>
+    <script type="text/javascript">
+
+        sh.sort(function(a,b){
+            var c=(new Date('0 '+a[2].split(' ')[1])).getTime()-(new Date('0 '+b[2].split(' ')[1])).getTime();
+            return c>0?1:c<0?-1:0;
+            })
+        var shGroup=[];//1440组
+        sh.forEach(function(v,k) {
+            var a=new Date('0 '+v[2].split(' ')[1]);
+            var index=a.getHours()*60+a.getMinutes();
+            shGroup[index] instanceof Array ? null :shGroup[index]=[];
+            v.push(1);
+            shGroup[index].push({value:v});
+        })
+
+ //打散同一秒钟在屏幕上会产生重合的点,每十组数据一个集合排重
+
+
+
+        function random2_4() {
+            var __=(Math.random()>0.5?1:-1);
+            return ((Math.random()*1000%3).toFixed(2)*__+(__===1?2:-2))/1000
+        }
+        for (var i = 0; i < shGroup.length; i++) {
+            var _=shGroup[i];
+            if(!_){continue;}
+            _.sort(function(a,b) {
+              return  (a.value[0].toFixed(3)+''+a.value[1].toFixed(3))-(b.value[0].toFixed(3)+''+b.value[1].toFixed(3));
+            })
+        }
+
+        for (var i = 0; i < shGroup.length; i++) {
+            var _=shGroup[i];
+            if(!_){continue;}
+            _.sort(function(a,b) {
+                var m=a.value;
+                var n=b.value;
+                var x=m[0]-n[0];
+                var y=m[1]-n[1]
+                if(Math.abs(x)<0.003 && Math.abs(y)<0.003){
+                   // console.log(m[0],m[1])
+                    m[0]=m[0]+random2_4();
+                    m[1]=m[1]+random2_4();
+                    //console.log(m[0],m[1],'-----')
+                }
+
+                return -1;
+            })
+        }
+
+    //////
+    var dom = document.getElementById("container");
+    var myChart = echarts.init(dom);
+   
+
+    _s={
+        type: 'effectScatter',
+        coordinateSystem: 'bmap',//geo
+        data: 1,
+        symbol:'circle',
+        symbolSize: function (val) {
+            return 4;
+        },
+        // showEffectOn: 'render',
+        rippleEffect: {
+            brushType: 'fill',
+            scale:4,
+            period: 5
+            
+        },
+        itemStyle: {
+            normal: {
+                color: 'rgba(255,255,5,.8)',
+                opacity:.5
+            }
+        },
+    };
+
+    option = {
+        
+        bmap: {
+            center: [121.481139, 31.20],
+            zoom: 12,
+            roam: true,
+            mapStyle: {
+                styleJson: [{
+                    'featureType': 'water',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#323642'
+                    }
+                }, {
+                    'featureType': 'land',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#242a35'
+                    }
+                }, {
+                    'featureType': 'railway',
+                    'elementType': 'all',
+                    'stylers': {
+                        'visibility': 'off'
+                    }
+                }, {
+                    'featureType': 'highway',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#474d5a'
+                    }
+                }, {
+                    'featureType': 'highway',
+                    'elementType': 'labels',
+                    'stylers': {
+                        'visibility': 'off'
+                    }
+                }, {
+                    'featureType': 'arterial',
+                    'elementType': 'geometry',
+                    'stylers': {
+                        'color': '#464d5a'
+                    }
+                }, {
+                    'featureType': 'arterial',
+                    'elementType': 'geometry.fill',
+                    'stylers': {
+                        'color': '#464d5a'
+                    }
+                }, {
+                    'featureType': 'poi',
+                    'elementType': 'all',
+                    'stylers': {
+                        'visibility': 'off'
+                    }
+                }, {
+                    'featureType': 'green',
+                    'elementType': 'all',
+                    'stylers': {
+                        'visibility': 'off'
+                    }
+                }, {
+                    'featureType': 'subway',
+                    'elementType': 'all',
+                    'stylers': {
+                        'visibility': 'off'
+                    }
+                }, {
+                    'featureType': 'manmade',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#464d5a'
+                    }
+                }, {
+                    'featureType': 'local',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#464d5a'
+                    }
+                }, {
+                    'featureType': 'arterial',
+                    'elementType': 'labels',
+                    'stylers': {
+                        'visibility': 'off'
+                    }
+                }, {
+                    'featureType': 'boundary',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#464d5a'
+                    }
+                }, {
+                    'featureType': 'building',
+                    'elementType': 'all',
+                    'stylers': {
+                        'color': '#00f'
+                    }
+                }, {
+                    'featureType': 'label',
+                    'elementType': 'labels.text.fill',
+                    'stylers': {
+                        'color': '#ff0',
+                        'visibility':'off'
+                    }
+                }]
+            }
+        },
+        series: [],
+        animation:false
+    };
+
+    // option.series[0].data = shGroup[0];
+    // myChart.setOption(option);
+
+    var minutes=0;
+    var $timer=$('#start');
+    var txt='用支付点亮上海 '
+    function nextFrame() {
+        if(option.series.length===12){
+            option.series.shift();
+        }
+        var s=Object.assign({},_s);
+        s.data=shGroup[minutes++];
+        option.series.push(s);
+        
+        
+        var m=(minutes%60).toString();
+        var h=Math.floor(minutes/60).toString();
+        if(h.length===1){h='0'+h}
+        if(m.length===1){m='0'+m}
+        if(h==24){m='00'}
+        $timer.text(txt+h+":"+m)
+        if(minutes<1452){
+            if(minutes===1){
+                setTimeout(nextFrame,1000);
+            }else if(minutes===2){
+                setTimeout(nextFrame,5000);
+            }else{
+                setTimeout(nextFrame,100);
+            }
+        }
+        myChart.setOption(option);
+        
+    }
+    nextFrame();   
+    //setTimeout(nextFrame,0);
+
+     myChart.setOption(option);
+    // var i = 1;
+    // $('#start').on('click', function() {
+    //     timer = setInterval(function() {
+    //         console.log(i)
+    //         if (i == 180) {
+    //             clearInterval(timer);
+    //             return;
+    //         }
+    //         option.series[0].data = allDate[i];
+    //         console.log()
+    //         myChart.setOption(option);
+    //         i++;
+    //     }, 1000);
+    // });
+    </script>
+</body>
+
+</html>
